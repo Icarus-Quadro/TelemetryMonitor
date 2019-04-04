@@ -24,7 +24,7 @@ public static class ReaderExtensions {
 public class Telemetry : MonoBehaviour
 {
     void Start() {
-        udpClient  = new UdpClient(1234);
+        udpClient  = new UdpClient(12345);
     }
 
     void Update()
@@ -41,30 +41,47 @@ public class Telemetry : MonoBehaviour
                     Temperature = reader.ReadSingle();
                     Orientation = reader.ReadQuaternion();
                     AngularMomentum = reader.ReadVector();
+                    Position = reader.ReadVector();
                 }
             }
         }
     }
 
     UdpClient udpClient;
-    
-    public Vector3 Acceleration { get; set; }
+
+    private Vector3 mAcceleration;
+    public Vector3 Acceleration
+    {
+        get
+        {
+            return mAcceleration;
+        }
+        set
+        {
+            var vec = transform.localRotation * value / 9.81f;
+            Debug.DrawLine(transform.position, transform.position + vec, Color.yellow, 0.1f);
+            mAcceleration = value;
+        }
+    }
+
     public Vector3 AngularVelocity {
         set {
             var vec = transform.localRotation * value;
             Debug.DrawLine(transform.position, transform.position + vec, Color.red, 0.1f);
         }
     }
+
     private Vector3 mMagneticField;
     public Vector3 MagneticField { 
         get {
             return mMagneticField;
         }
         set {
-            Debug.DrawLine(transform.position, transform.position + value * 100f, Color.white, 0.1f);
+            Debug.DrawLine(transform.position, transform.position + transform.localRotation * value, Color.white, 0.1f);
             mMagneticField = value;
         }
     }
+
     public float Pressure { get; set; }
     public float Temperature { get; set; }
     public Quaternion Orientation {
@@ -78,6 +95,13 @@ public class Telemetry : MonoBehaviour
     public Vector3 AngularMomentum {
         set {
             Debug.DrawLine(transform.position, transform.position + value, Color.white, 0.1f);
+        }
+    }
+    public Vector3 Position
+    {
+        set
+        {
+            transform.localPosition = new Vector3(0, value.y, 0);
         }
     }
 }

@@ -5,11 +5,14 @@ using UnityEngine.UI;
 
 public class OrientationText : MonoBehaviour
 {
-    public Text TextComponent;
-    public GameObject Target;
+    public Text PressureText;
+    public Text AccelerationText;
+
+    public Telemetry Target;
     // Update is called once per frame
     void Update()
     {
-        TextComponent.text = Target.transform.localRotation.ToString("f3");
+        PressureText.text = Target.Pressure.ToString("f1") + " Pa";
+        AccelerationText.text = Target.Acceleration.ToString("f1") + ", " + Target.Acceleration.magnitude.ToString("f2") + " m/s";
     }
 }

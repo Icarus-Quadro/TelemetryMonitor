@@ -42,6 +42,8 @@ public class Telemetry : MonoBehaviour
                     Orientation = reader.ReadQuaternion();
                     AngularMomentum = reader.ReadVector();
                     Position = reader.ReadVector();
+                    Velocity = reader.ReadVector();
+                    WorldAcceleration = reader.ReadVector();
                 }
             }
         }
@@ -92,16 +94,28 @@ public class Telemetry : MonoBehaviour
             transform.localRotation = value;
         }
     }
+
     public Vector3 AngularMomentum {
         set {
             Debug.DrawLine(transform.position, transform.position + value, Color.white, 0.1f);
         }
     }
+
     public Vector3 Position
     {
         set
         {
             transform.localPosition = new Vector3(0, value.y, 0);
         }
+    }
+
+    public Vector3 Velocity
+    {
+        get; set;
+    }
+
+    public Vector3 WorldAcceleration
+    {
+        get; set;
     }
 }

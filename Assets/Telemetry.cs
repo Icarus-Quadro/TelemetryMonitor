@@ -45,7 +45,7 @@ public class Telemetry : MonoBehaviour
     void Start()
     {
         udpClient = new UdpClient();
-        IPEndPoint remote = new IPEndPoint(IPAddress.Any, 12345);
+        IPEndPoint remote = new IPEndPoint(IPAddress.Any, 42424);
         udpClient.Client.Bind(remote);
     }
 
@@ -53,7 +53,7 @@ public class Telemetry : MonoBehaviour
     {
         while (udpClient.Available > 0)
         {
-            IPEndPoint remote = new IPEndPoint(IPAddress.Any, 12345);
+            IPEndPoint remote = new IPEndPoint(IPAddress.Any, 42424);
             var receiveBytes = udpClient.Receive(ref remote);
 
             if (receiveBytes.Length > 0)
@@ -74,7 +74,7 @@ public class Telemetry : MonoBehaviour
                         Position = reader.ReadVector();
                         Velocity = reader.ReadVector();
                         WorldAcceleration = reader.ReadVector();
-                        reader.ReadArray(4); // motors
+                        Motors = reader.ReadArray(4); // motors
                     }
                 }
             }
@@ -94,7 +94,14 @@ public class Telemetry : MonoBehaviour
             }
 
             var bytes = inputStream.ToArray();
-            udpClient.Send(bytes, bytes.Length, RemoteIpEndPoint);
+            try
+            {
+                udpClient.Send(bytes, bytes.Length, RemoteIpEndPoint);
+            }
+            catch
+            {
+
+            }
         }
     }
 
@@ -106,19 +113,20 @@ public class Telemetry : MonoBehaviour
             writer.Write(P);
             writer.Write(I);
             writer.Write(D);
-            writer.Write(0.0f);
-            writer.Write(0.0f);
-            writer.Write(0.0f);
+            writer.Write(P);
+            writer.Write(I);
+            writer.Write(D);
         });
     }
 
-    public void SendSteering(bool enabled, float throttle)
+    public void SendSteering(bool enabled, float throttle, bool reset)
     {
         Send(writer =>
         {
             writer.Write((byte)1);
             writer.Write((int)(enabled ? 1 : 0));
             writer.Write(throttle);
+            writer.Write((int)(reset ? 1 : 0));
         });
     }
 
@@ -137,12 +145,18 @@ public class Telemetry : MonoBehaviour
         }
     }
 
+    private Vector3 mAngularVelocity;
     public Vector3 AngularVelocity
     {
         set
         {
+            mAngularVelocity = value;
             var vec = transform.localRotation * value;
             Debug.DrawLine(transform.position, transform.position + vec, Color.red, 0.1f);
+        }
+        get
+        {
+            return mAngularVelocity;
         }
     }
 
@@ -184,10 +198,8 @@ public class Telemetry : MonoBehaviour
 
     public Vector3 Position
     {
-        set
-        {
-            transform.localPosition = new Vector3(0, value.y, 0);
-        }
+        get;
+        set;
     }
 
     public Vector3 Velocity
@@ -198,5 +210,23 @@ public class Telemetry : MonoBehaviour
     public Vector3 WorldAcceleration
     {
         get; set;
+    }
+
+    private float[] motors;
+    public float[] Motors
+    {
+        get
+        {
+            return motors;
+        }
+        set
+        {
+            motors = value;
+            for (int i = 0; i < 4; ++i)
+            {
+                Vector3 begin = transform.position + transform.right * Mathf.Pow(-1, i) + transform.forward * Mathf.Pow(-1, i + 1);
+                Debug.DrawLine(begin, begin + transform.up * motors[i], Color.green, 0.1f);
+            }
+        }
     }
 }

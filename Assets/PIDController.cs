@@ -38,6 +38,6 @@ public class PIDController : MonoBehaviour
 
     private void Send()
     {
-        telemetry.SendPID(p, i, d);
+        telemetry.SendPID(p, i, -d);
     }
 }

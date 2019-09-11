@@ -11,11 +11,18 @@ public class RemoteController : MonoBehaviour
 
     public float Throttle { get; set; }
 
+    private bool reset;
+
     void Update()
     {
+
         if (Input.GetButtonDown("Switch"))
         {
             motorsEnabled = !motorsEnabled;
+            if (motorsEnabled)
+            {
+                reset = true;
+            }
         }
 
         if (Time.time > time)
@@ -23,7 +30,8 @@ public class RemoteController : MonoBehaviour
             time = Time.time + 0.1f;
 
             float value = Throttle + Input.GetAxis("Throttle");
-            telemetry.SendSteering(motorsEnabled, value);
+            telemetry.SendSteering(motorsEnabled, value, reset);
+            reset = false;
         }
     }
 }
